@@ -84,26 +84,31 @@ class Kopokopo extends K2
 
     /**
      * Add external entities that will be the destination of your payments.
-     * @return $this
+     * @param string $fname
+     * @param string $lname
+     * @param string $email
+     * @param string $phone
+     * @param string $network
+     * @return array
      */
-    public function addPaymentRecipient()
+    public function addPaymentRecipient(string $fname,string $lname,string $email,string $phone,string $network): array
     {
         # Add external entities that will be the destination of your payments.
         $pay = Kopokopo::PayService();
         $response = $pay->addPayRecipient([
             'type' => 'mobile_wallet',
-            'firstName' => 'John',
-            'lastName' => 'Doe',
-            'email' => 'johndoe@nomail.net',
-            'phoneNumber' => '+254999999999',
-            'network' => 'Safaricom',
+            'firstName' => $fname,
+            'lastName' => $lname,
+            'email' => $email,
+            'phoneNumber' => $phone,
+            'network' => $network,
             'accessToken' => $this->access_token
         ]);
 //        if($response['status'] == 'success')
 //        {
 //            dump("The resource location is:" . $response['location']) ;
 //        }
-        return $this;
+        return $response;
     }
 
     public function sendPayment()
