@@ -76,11 +76,21 @@ For production you need to replace with production credentials and also set `'sa
 For security reasons you may want to define your API credentials in `env` file. For example;
 
 ```php
+  // config/kopokopo.php
   ...
   'client_id' => env('KOPOKOPO_CLIENT_ID'),
   'client_secret'   => env('KOPOKOPO_CLIENT_SECRET'),
   'api_key' => env('KOPOKOPO_API_KEY'),
   ...
+```
+
+```dotenv
+# .env
+# ...
+KOPOKOPO_CLIENT_ID="BOPgOCAGF0gsUNH794EfjtmLiMEJ1BfMXjTZ2FrZM8"
+KOPOKOPO_CLIENT_SECRET="8KGf7aoHzHezjLpHzyF5NdJFd-T-Q1DewYyKrpiBX_s"
+KOPOKOPO_API_KEY="EuavW1N-H1UMk4D-9XPKPudGGZ3yFBiygEwfkWDes_I"
+# ...
 ```
 
 ## Usage
@@ -126,13 +136,20 @@ newly created Incoming Payment.
 Coming soon!
 
 ### Create Payment Recipients
-You can add external recipient that will be the destination of your payments in the future, sort of creating contacts. The following are the different types of pay recipients you can create with examples.
+
+You can add external recipient that will be the destination of your payments in the future, sort of creating contacts.
+The following are the different types of pay recipients you can create with examples.
+
 #### (a). Mobile Wallet
+
 Create Pay Recipient for a Mobile Wallet recipient;
+
 ```php
 $create_recipient_response = Kopokopo::addPaymentRecipient('Michael','Gatuma','mgates4410@gmail.com','+254716076053','Safaricom');
 ```
-A HTTP response code of 201 is returned upon successful creation of the PAY recipient. The URL of the recipient resource is also returned in the HTTP Location Header
+
+A HTTP response code of 201 is returned upon successful creation of the PAY recipient. The URL of the recipient resource
+is also returned in the HTTP Location Header
 
 `HTTP/1.1 201 Created Location: https://sandbox.kopokopo.com/api/v1/pay_recipients/c7f300c0-f1ef-4151-9bbe-005005aa3747`
 
@@ -157,16 +174,19 @@ Coming soon!
 Coming soon!
 
 ### Transfer to your settling account(s)
+
 Transfer funds to your pre-approved settlement accounts (bank accounts or mobile wallets).
 
 Coming soon!
 
 ### Polling
+
 Poll Buygoods Transactions between the specified dates for a particular till or for the whole company.
 
 Coming soon!
 
 ### Transaction SMS Notifications API Requests
+
 Send sms notifications to your customer after you have received a payment from them.
 
 Coming soon!
@@ -183,7 +203,9 @@ mgates4410@gmail.com. All security vulnerabilities will be promptly addressed.
 
 ## License
 
-The laravel-kopokopo package is open-source software licensed under the [MIT license](https://opensource.org/licenses/MIT)
+The laravel-kopokopo package is open-source software licensed under
+the [MIT license](https://opensource.org/licenses/MIT)
 
 ## Tags
+
 laravel, kopokopo, kopo kopo, mpesa, package
