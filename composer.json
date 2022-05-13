@@ -1,0 +1,47 @@
+{
+    "name": "michaelgatuma/laravel-kopokopo",
+    "description": "A simple package for laravel developers to consume Kopokopo API",
+    "homepage": "https://github/michaelgatuma/laravel-kopokopo",
+    "keywords": [
+        "kopokopo",
+        "laravel",
+        "michaelgatuma"
+    ],
+    "type": "laravel",
+    "license": "MIT",
+    "minimum-stability": "dev",
+    "authors": [
+        {
+            "name": "Michael Gatuma",
+            "email": "mgates4410@gmail.com"
+        }
+    ],
+    "require": {
+        "guzzlehttp/guzzle": "^7.1",
+        "php": "^8.0"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^9.3.3"
+    },
+    "autoload": {
+        "psr-4": {
+            "Michaelgatuma\\Kopokopo\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Michaelgatuma\\Kopokopo\\Tests\\": "tests"
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Michaelgatuma\\Kopokopo\\KopokopoServiceProvider"
+            ],
+            "aliases": {
+                "Kopokopo": "Michaelgatuma\\Kopokopo\\Facades\\Kopokopo"
+            }
+        }
+    }
+
+}
