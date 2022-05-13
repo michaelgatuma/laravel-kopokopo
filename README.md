@@ -1,6 +1,6 @@
 # Kopokopo Laravel Package
 
-A simple package for laravel developers to consume Kopokopo Mpesa API
+A simple package for laravel developers to consume Kopokopo Mpesa API for laravel 8
 
 ## Installation
 
