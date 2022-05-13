@@ -133,7 +133,7 @@ newly created Incoming Payment.
 
 ### Query Incoming Payment Status
 
-Coming soon!
+>Coming Soon
 
 ### Create Payment Recipients
 
@@ -155,41 +155,41 @@ is also returned in the HTTP Location Header
 
 #### (b). Bank Account
 
-Coming soon!
+>Coming Soon
 
 #### (c). External Till
 
-Coming soon!
+>Coming Soon
 
 #### (c). Paybill
 
-Coming soon!
+>Coming Soon
 
 ### Make Outgoing Payments
 
-Coming soon!
+>Coming Soon
 
 ### Query Outgoing Payment Status
 
-Coming soon!
+>Coming Soon
 
 ### Transfer to your settling account(s)
 
 Transfer funds to your pre-approved settlement accounts (bank accounts or mobile wallets).
 
-Coming soon!
+>Coming Soon
 
 ### Polling
 
 Poll Buygoods Transactions between the specified dates for a particular till or for the whole company.
 
-Coming soon!
+>Coming Soon
 
 ### Transaction SMS Notifications API Requests
 
 Send sms notifications to your customer after you have received a payment from them.
 
-Coming soon!
+>Coming Soon
 
 ## Contributing
 
