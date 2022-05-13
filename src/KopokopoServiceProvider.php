@@ -27,9 +27,20 @@ class KopokopoServiceProvider extends ServiceProvider
      */
     public function boot()
     {
-        //boot routes,event listeners etc
         include __DIR__.'/routes.php';
 //        $this->loadRoutesFrom(__DIR__.'/routes/web.php');
+
+        if ($this->app->runningInConsole()) {
+            //publish the config files
+            $this->publishes([
+                __DIR__.'/../config/kopokopo.php' => config_path('kopokopo.php'),
+            ], 'kopokopo-config');
+
+            // Register commands
+            $this->commands([
+                InstallKopokopo::class,
+            ]);
+        }
 
     }
 }
