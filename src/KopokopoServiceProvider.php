@@ -3,6 +3,7 @@
 namespace Michaelgatuma\Kopokopo;
 
 use Illuminate\Support\ServiceProvider;
+use Michaelgatuma\Kopokopo\Console\InstallKopokopo;
 
 class KopokopoServiceProvider extends ServiceProvider
 {
