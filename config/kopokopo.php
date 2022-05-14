@@ -29,14 +29,14 @@ return [
     'currency' => 'KES',
 
     // Webhooks are a means of getting notified on your laravel application of events in the Kopo Kopo application. i.e https://api-docs.kopokopo.com/#webhooks
-    // Below values will be used to register your webhooks on Kopokopo. For it to work, update the values and use Kopokopo::registerWebhooks() to register
+    // Below values will be used to register your webhooks on Kopokopo. For it to work, uncomment and update the values you need then use Kopokopo::registerWebhooks() to register
     'webhooks' => [
-        'buygoods_transaction_received' => 'https://example.com/k2transrec',
-        'buygoods_transaction_reversed' => 'https://example.com/k2transrev',
-        'b2b_transaction_received' => 'https://example.com/k2b2btransrec',
-        'm2m_transaction_received' => 'https://example.com/k2m2mtransrec',
-        'settlement_transfer_completed' => 'https://example.com/k2settcomp',
-        'customer_created' => 'https://example.com/k2custcr'
+//        'buygoods_transaction_received' => 'https://example.com/k2transrec',
+//        'buygoods_transaction_reversed' => 'https://example.com/k2transrev',
+//        'b2b_transaction_received' => 'https://example.com/k2b2btransrec',
+//        'm2m_transaction_received' => 'https://example.com/k2m2mtransrec',
+//        'settlement_transfer_completed' => 'https://example.com/k2settcomp',
+//        'customer_created' => 'https://example.com/k2custcr'
     ],
 
     // This webhook is used to get notified of a successfull mpesa stk payment
