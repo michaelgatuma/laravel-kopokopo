@@ -7,7 +7,7 @@ use JetBrains\PhpStorm\Pure;
 use Michaelgatuma\Kopokopo\Requests\K2InitialiseRequest;
 use PhpOffice\PhpSpreadsheet\Calculation\Web;
 
-class Kopokopo_
+class Kopokopo
 {
 
     private string $base_domain;
