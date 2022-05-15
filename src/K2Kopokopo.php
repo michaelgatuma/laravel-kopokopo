@@ -2,7 +2,10 @@
 
 namespace Michaelgatuma\Kopokopo;
 
-class Kopokopo extends K2
+/**
+ * @deprecated
+ */
+class K2Kopokopo extends K2
 {
     private string $access_token;
     private int $access_token_ttl;
@@ -12,7 +15,7 @@ class Kopokopo extends K2
         parent::__construct();
         # AUTHORIZATION
         // Get one of the services
-        $tokens = Kopokopo::TokenService();
+        $tokens = (new Kopokopo)->TokenService();
         // Use the service
         $result = $tokens->getToken();
         if ($result['status'] == 'success') {
