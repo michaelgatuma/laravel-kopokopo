@@ -38,10 +38,12 @@ class Kopokopo
         $this->version = 'v1/';
 
         $this->client = new Client([
+            'verify' => config('kopokopo.curl_ssl_verify',true),
             'base_uri' => $this->base_url . "/api/" . $this->version,
         ]);
 
         $this->tokenClient = new Client([
+            'verify' => config('kopokopo.curl_ssl_verify',true),
             'base_uri' => $this->base_url,
             'headers' => [
                 'Content-Type' => 'application/json',
