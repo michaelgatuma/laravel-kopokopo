@@ -46,7 +46,16 @@ abstract class Service
         ];
     }
 
-    public function getStatus($options)
+    /**
+     * Query the status of a previously initiated Payment or Transfer request or the status of Polling API or a Transaction Notification
+     * @see https://api-docs.kopokopo.com/?php#query-incoming-payment-status
+     * @see https://api-docs.kopokopo.com/?php#query-payment-status
+     * @see https://api-docs.kopokopo.com/?php#query-transfer-status
+     * @see https://api-docs.kopokopo.com/?php#query-polling-api-status
+     * @param $options
+     * @return array
+     */
+    public function getStatus($options): array
     {
         try {
             $status = new StatusRequest($options);

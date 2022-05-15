@@ -8,7 +8,12 @@ use Michaelgatuma\Kopokopo\Requests\TokenRequest;
 
 class TokenService extends Service
 {
-    public function getToken()
+    /**
+     * Get a token in order to use the service
+     * @see https://api-docs.kopokopo.com/?php#request-application-authorization
+     * @return array
+     */
+    public function getToken(): array
     {
         $grantType = 'client_credentials';
 
@@ -32,7 +37,13 @@ class TokenService extends Service
         }
     }
 
-    public function revokeToken($options)
+    /**
+     * The request is used to revoke a particular token at a time.
+     * @see https://api-docs.kopokopo.com/?php#revoke-application-39-s-access-token
+     * @param $options
+     * @return array
+     */
+    public function revokeToken($options): array
     {
         try {
             $tokenRequest = new TokenRequest($options);
@@ -54,7 +65,13 @@ class TokenService extends Service
         }
     }
 
-    public function introspectToken($options)
+    /**
+     * It can be used to check the validity of your access tokens, and find out other information such as which user and which scopes are associated with the token.
+     * @see https://api-docs.kopokopo.com/?php#request-token-introspection
+     * @param $options
+     * @return array
+     */
+    public function introspectToken($options): array
     {
         try {
             $tokenRequest = new TokenRequest($options);
@@ -78,7 +95,13 @@ class TokenService extends Service
         }
     }
 
-    public function infoToken($options)
+    /**
+     * Shows details about the token used for authentication.
+     * @see https://api-docs.kopokopo.com/?php#request-token-information
+     * @param $options
+     * @return array
+     */
+    public function infoToken($options): array
     {
         try {
             $tokenRequest = new TokenRequest($options);
