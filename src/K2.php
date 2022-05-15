@@ -5,6 +5,9 @@ namespace Michaelgatuma\Kopokopo;
 use GuzzleHttp\Client;
 use  Michaelgatuma\Kopokopo\Requests\K2InitialiseRequest;
 
+/**
+ * @deprecated
+ */
 class K2
 {
     protected $options;
