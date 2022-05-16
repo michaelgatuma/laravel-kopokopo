@@ -69,7 +69,7 @@ abstract class Service
             $dataHandler = new FailedResponseData();
             return $this->error($dataHandler->setErrorData($e));
         } catch (Exception $e) {
-            return $this->error($e->getMessage());
+            return $this->error($e);
         }
     }
 }
