@@ -27,7 +27,7 @@ class Kopokopo
             'clientId' => config('kopokopo.client_id'),
             'clientSecret' => config('kopokopo.client_secret'),
             'apiKey' => config('kopokopo.api_key'),
-            'baseUrl' => 'https://'.$this->base_domain
+            'baseUrl' => $this->base_domain
         ];
         $k2InitialiseRequest = new K2InitialiseRequest($options);
 
