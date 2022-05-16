@@ -9,13 +9,12 @@ use PhpOffice\PhpSpreadsheet\Calculation\Web;
 
 class Kopokopo
 {
-
     private string $base_domain;
-    private mixed $base_url;
-    private array $options;
+    public mixed $baseUrl;
+    protected array $options;
     private string $version;
-    private Client $client;
-    private Client $tokenClient;
+    protected Client $client;
+    protected Client $tokenClient;
 
     public function __construct()
     {
@@ -32,19 +31,19 @@ class Kopokopo
         ];
         $k2InitialiseRequest = new K2InitialiseRequest($options);
 
-        $this->base_url=$k2InitialiseRequest->getBaseUrl();
+        $this->baseUrl=$k2InitialiseRequest->getBaseUrl();
         $this->options = $k2InitialiseRequest->getOptions();
 
         $this->version = 'v1/';
 
         $this->client = new Client([
             'verify' => config('kopokopo.curl_ssl_verify',true),
-            'base_uri' => $this->base_url . "/api/" . $this->version,
+            'base_uri' => $this->baseUrl . "/api/" . $this->version,
         ]);
 
         $this->tokenClient = new Client([
             'verify' => config('kopokopo.curl_ssl_verify',true),
-            'base_uri' => $this->base_url,
+            'base_uri' => $this->baseUrl,
             'headers' => [
                 'Content-Type' => 'application/json',
                 'Accept' => 'application/json',
