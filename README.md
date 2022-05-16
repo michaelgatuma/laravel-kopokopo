@@ -1,6 +1,6 @@
 # Kopokopo Laravel Package
 
-A simple package for laravel developers to consume Kopokopo Mpesa API for laravel 8.
+A simple package for laravel developers to consume Kopokopo API for laravel 8.
 
 ## Installation
 
@@ -95,7 +95,33 @@ KOPOKOPO_API_KEY="EuavW1N-H1UMk4D-9XPKPudGGZ3yFBiygEwfkWDes_I"
 
 ## Usage
 
-### Register Notification Webhooks
+### First things first...Authorization
+
+> N/B: You can skip the authorization step unless you need to carry out a number of operations in a single execution. Otherwise, the rest of the steps automatically acquire the access_token before calling the API>
+
+
+Kopo Kopo uses Oauth2 to allow access to the Kopo Kopo API so before anything else, Kopokopo API expects the application `access token` to be used to make calls to the Kopo Kopo API on behalf of the application.
+To acquire the token, you need to call the token service like below:
+```php
+//initialize kopokopo
+$kopokopo=new Kopokopo();
+// Get the token (optional if needed later)
+$token=$kopokopo->TokenService()->getToken();
+//revoke access token
+$kopokopo->TokenService()->revokeToken(['accessToken' => $token])
+
+//use kopokopo instance i.e subscribe to webhooks..
+$response =$kopokopo->Webhooks()->subscribe([
+    'eventType' => 'buygoods_transaction_received',
+    'url' => 'https://myawesomeapplication.com/destination',
+    'scope' => 'till',
+    'scopeReference' => '555555', // Your till number
+    'accessToken' => 'my_access_token'
+]);
+
+```
+
+### Webhook Subscription
 
 This API enables you to register the callback URLs via which you will receive payment notifications for payments and
 transaction that happen in your Kopo kopo app. To register Urls ensure all urls under webhooks are filled with valid
@@ -110,8 +136,14 @@ call `registerWebhooks()` on `Kopokopo` facade. i.e
 
 ```php
 ...
-$register_response=Kopokopo::registerWebhooks();
-// true
+$registration_response=Kopokopo::Webhooks()->subscribe([
+    'eventType' => 'buygoods_transaction_received',
+    'url' => 'https://myawesomeapplication.com/destination',
+    'scope' => 'till',
+    'scopeReference' => '555555', // Your till number
+    'accessToken' => 'my_access_token'
+]);
+// HTTP/1.1 201 Created Location: https://sandbox.kopokopo.com/api/v1/webhook_subscriptions/d76265cd-0951-e511-80da-0aa34a9b2388
 ...
 ```
 
@@ -123,7 +155,28 @@ json HTTP response;
 You can receive payments from M-PESA users via STK Push. You can initiate payment like this;
 
 ```php
-$payment_response=Kopokopo::initiateMpesaPayment(50, '+254716076053', 'Michael', 'Gatuma', 'mgates4410@gmail.com', 'KES')
+$payment_response=Kopokopo::StkService()->initiateIncomingPayment([
+  'paymentChannel' => 'M-PESA STK Push',
+  'tillNumber' => 'K000000',
+  'firstName' => 'Jane',
+  'lastName' => 'Doe',
+  'phoneNumber' => '+254999999999',
+  'amount' => 3455,
+  'currency' => 'KES',
+  'email' => 'example@example.com',
+  'callbackUrl' => 'https://callback_to_your_app.your_application.com/endpoint',
+  'metadata' => [
+    'customerId' => '123456789',
+    'reference' => '123456',
+    'notes' => 'Payment for invoice 12345'
+  ],
+  'accessToken' => 'myRand0mAcc3ssT0k3n',
+]);
+if($payment_response['status'] == 'success')
+{
+    echo "The resource location is:" . json_encode($response['location']);
+    // => 'https://sandbox.kopokopo.com/api/v1/incoming_payments/247b1bd8-f5a0-4b71-a898-f62f67b8ae1c'
+}
 ```
 
 Upon a successful request a HTTP Status 201 will be returned and the location HTTP Header will contain the URL of the
@@ -145,7 +198,20 @@ The following are the different types of pay recipients you can create with exam
 Create Pay Recipient for a Mobile Wallet recipient;
 
 ```php
-$create_recipient_response = Kopokopo::addPaymentRecipient('Michael','Gatuma','mgates4410@gmail.com','+254716076053','Safaricom');
+$create_recipient_response = Kopokopo::PayService()->addPayRecipient([
+  'type' => 'mobile_wallet',
+  'firstName'=> 'John',
+  'lastName'=> 'Doe',
+  'email'=> 'johndoe@nomail.net',
+  'phoneNumber'=> '+254999999999',
+  'network'=> 'Safaricom',
+  'accessToken' => 'myRand0mAcc3ssT0k3n'
+]);
+
+if($create_recipient_response['status'] == 'success')
+{
+    echo "The resource location is:" . json_encode($create_recipient_response['location']);
+}
 ```
 
 A HTTP response code of 201 is returned upon successful creation of the PAY recipient. The URL of the recipient resource
@@ -208,4 +274,4 @@ the [MIT license](https://opensource.org/licenses/MIT)
 
 ## Tags
 
-laravel, kopokopo, kopo kopo, mpesa, package
+laravel, kopokopo, kopo kopo, k2-connect,k2-connect-php, mpesa, package

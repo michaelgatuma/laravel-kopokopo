@@ -12,26 +12,39 @@ use InvalidArgumentException;
 
 class Webhooks extends Service
 {
-    public function webhookHandler($details, $signature)
+    /**
+     * This will both validate and process the payload for you.
+     * The payload is the json value in the body of the POST request i.e. `request()->getContent()`
+     * @param $payload
+     * @param $signature
+     * @return array
+     */
+    public function webhookHandler($payload, $signature): array
     {
-        if (empty($details) || empty($signature)) {
+        if (empty($payload) || empty($signature)) {
             return $this->error('Pass the payload and signature ');
         }
 
         $auth = new Auth();
 
-        $statusCode = $auth->auth($details, $signature, $this->apiKey);
+        $statusCode = $auth->auth($payload, $signature, $this->apiKey);
 
         if ($statusCode == 200) {
-            $dataHandler = new DataHandler(json_decode($details, true));
+            $dataHandler = new DataHandler(json_decode($payload, true));
 
-            return $this->success($dataHandler->dataHandlerSort($details));
+            return $this->success($dataHandler->dataHandlerSort($payload));
         } else {
             return $this->error('Unauthorized');
         }
     }
 
-    public function subscribe($options)
+    /**
+     * Create a webhook subscription.
+     * @see https://api-docs.kopokopo.com/?php#create-a-webhook-subscription
+     * @param $options
+     * @return array
+     */
+    public function subscribe($options): array
     {
         try {
             $subscribeRequest = new WebhookSubscribeRequest($options);

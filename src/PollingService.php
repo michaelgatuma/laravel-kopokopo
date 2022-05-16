@@ -10,7 +10,13 @@ use Exception;
 
 class PollingService extends Service
 {
-    public function pollTransactions($options)
+    /**
+     * Poll Buygoods Transactions between the specified dates for a particular till or for the whole company
+     * @see https://api-docs.kopokopo.com/?php#polling-api-requests
+     * @param $options
+     * @return array
+     */
+    public function pollTransactions($options): array
     {
         $pollingRequest = new PollingRequest($options);
         try {

@@ -10,7 +10,13 @@ use Exception;
 
 class SmsNotificationService extends Service
 {
-    public function sendTransactionSmsNotification($options)
+    /**
+     * Send sms notifications to your customer after you have received a payment from them.
+     * @see https://api-docs.kopokopo.com/?php#transaction-sms-notifications-api-requests
+     * @param $options
+     * @return array
+     */
+    public function sendTransactionSmsNotification($options): array
     {
         $transactionNotificationRequest = new TransactionSmsNotificationRequest($options);
         try {

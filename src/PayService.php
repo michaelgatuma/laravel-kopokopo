@@ -17,7 +17,13 @@ use GuzzleHttp\Client;
 
 class PayService extends Service
 {
-    public function addPayRecipient($options)
+    /**
+     * Add external entities that will be the destination of your payments.
+     * @see https://api-docs.kopokopo.com/?php#adding-pay-recipients
+     * @param $options
+     * @return array
+     */
+    public function addPayRecipient($options): array
     {
         try {
             if (!isset($options['type'])) {
@@ -45,7 +51,13 @@ class PayService extends Service
         }
     }
 
-    public function sendPay($options)
+    /**
+     * Create an outgoing payment to a third party.
+     * @see https://api-docs.kopokopo.com/?php#create-a-payment
+     * @param $options
+     * @return array
+     */
+    public function sendPay($options): array
     {
         $payRequest = new PayRequest($options);
         try {
