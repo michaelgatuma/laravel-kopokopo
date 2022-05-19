@@ -19,15 +19,15 @@ class Kopokopo
     public function __construct()
     {
         if (config('kopokopo.sandbox')) {
-            $this->base_domain = 'sandbox.kopokopo.com';
+            $this->baseUrl = 'https://sandbox.kopokopo.com';
         } else {
-            $this->base_domain = 'api.kopokopo.com';
+            $this->baseUrl = 'https://api.kopokopo.com';
         }
         $options=[
             'clientId' => config('kopokopo.client_id'),
             'clientSecret' => config('kopokopo.client_secret'),
             'apiKey' => config('kopokopo.api_key'),
-            'baseUrl' => 'https://'.$this->base_domain
+            'baseUrl' => $this->baseUrl
         ];
         $k2InitialiseRequest = new K2InitialiseRequest($options);
 
