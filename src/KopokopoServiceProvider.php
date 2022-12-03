@@ -60,7 +60,7 @@ class KopokopoServiceProvider extends ServiceProvider
         // Publishing the configuration file.
         $this->publishes([
             __DIR__.'/../config/kopokopo.php' => config_path('kopokopo.php'),
-        ], 'kopokopo.config');
+        ], 'kopokopo-config');
 
         // Publishing the views.
         /*$this->publishes([
