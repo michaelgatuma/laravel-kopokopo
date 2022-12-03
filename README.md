@@ -257,10 +257,20 @@ Send sms notifications to your customer after you have received a payment from t
 
 >Coming Soon
 
+## Change log
+
+Please see the [changelog](changelog.md) for more information on what has changed recently.
+
+## Testing
+
+``` bash
+$ composer test
+```
+
 ## Contributing
 
 Thank you for considering contributing to `laravel-kopokopo`. Pull requests and issues welcome. Be sure to check open
-issues and PRs before continuing.
+issues and PRs before continuing. Take a look at [contributing.md](contributing.md) to see a to do list.
 
 ## Security Vulnerabilities
 
@@ -275,3 +285,15 @@ the [MIT license](https://opensource.org/licenses/MIT)
 ## Tags
 
 laravel, kopokopo, kopo kopo, k2-connect,k2-connect-php, mpesa, package
+
+[ico-version]: https://img.shields.io/packagist/v/michaelgatuma/kopokopo.svg?style=flat-square
+[ico-downloads]: https://img.shields.io/packagist/dt/michaelgatuma/kopokopo.svg?style=flat-square
+[ico-travis]: https://img.shields.io/travis/michaelgatuma/kopokopo/master.svg?style=flat-square
+[ico-styleci]: https://styleci.io/repos/12345678/shield
+
+[link-packagist]: https://packagist.org/packages/michaelgatuma/kopokopo
+[link-downloads]: https://packagist.org/packages/michaelgatuma/kopokopo
+[link-travis]: https://travis-ci.org/michaelgatuma/kopokopo
+[link-styleci]: https://styleci.io/repos/12345678
+[link-author]: https://github.com/michaelgatuma
+[link-contributors]: ../../contributors
