@@ -3,6 +3,7 @@
 namespace Michaelgatuma\Kopokopo;
 
 use Illuminate\Support\ServiceProvider;
+use Michaelgatuma\Kopokopo\Console\InstallKopokopo;
 
 class KopokopoServiceProvider extends ServiceProvider
 {
@@ -34,7 +35,7 @@ class KopokopoServiceProvider extends ServiceProvider
         $this->mergeConfigFrom(__DIR__.'/../config/kopokopo.php', 'kopokopo');
 
         // Register the service the package provides.
-        $this->app->bind('kopokopo', function ($app) {
+        $this->app->singleton('kopokopo', function ($app) {
             return new Kopokopo;
         });
     }
@@ -77,6 +78,8 @@ class KopokopoServiceProvider extends ServiceProvider
         ], 'kopokopo.views');*/
 
         // Registering package commands.
-        // $this->commands([]);
+         $this->commands([
+             InstallKopokopo::class,
+         ]);
     }
 }
