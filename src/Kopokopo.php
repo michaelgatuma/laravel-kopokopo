@@ -6,6 +6,7 @@ use Exception;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\BadResponseException;
 use GuzzleHttp\Exception\GuzzleException;
+use Illuminate\Support\Arr;
 use InvalidArgumentException;
 use Michaelgatuma\Kopokopo\Data\DataHandler;
 use Michaelgatuma\Kopokopo\Data\FailedResponseData;
@@ -201,6 +202,15 @@ class Kopokopo
         }
     }
 
+    public function subscribeRegisteredWebhooks($access_token): array
+    {
+        $webhooks = config('kopokopo.webhooks');
+        foreach ($webhooks as $event_type => $url) {
+            $this->subscribeWebhook($event_type, $url, config('kopokopo.scope'), config('kopokopo.till_number'), $access_token);
+        }
+        return self::success("Webhooks Registered");
+    }
+
     /**
      * Webhooks are a means of getting notified of events in the Kopo Kopo application. To receive webhooks, you need to create a webhook subscription
      * @param string $event_type
@@ -210,7 +220,7 @@ class Kopokopo
      * @param string $access_token
      * @return array
      */
-    public function subscribeWebhooks(string $event_type, string $url, string $scope, int $till, string $access_token): array
+    public function subscribeWebhook(string $event_type, string $url, string $scope, int $till, string $access_token): array
     {
         try {
 //            $subscribeRequest = new WebhookSubscribeRequest($options);
@@ -239,18 +249,18 @@ class Kopokopo
     /**
      * Before processing webhook events, make sure that they originated from Kopo Kopo.Each request is signed with the api_key you got when creating an oauth application on the platform.
      * The signature is contained in the X-KopoKopo-Signature header and is a SHA256 HMAC hash of the request body with the key being your API Key.
-     * @param $payload
-     * @param $signature
+     * @param string $payload
+     * @param string $signature
      * @return array
      */
-    public function webhookHandler($payload,$signature): array
+    public function webhookHandler(string $payload, string $signature): array
     {
 
         if (empty($payload) || empty($signature)) {
             return $this->error('Pass the payload and signature ');
         }
 
-        $statusCode = $this->validatePayload($payload,$signature,$this->api_key);
+        $statusCode = $this->validatePayload($payload, $signature, $this->api_key);
 
         if ($statusCode == 200) {
             $dataHandler = new DataHandler(json_decode($payload, true));
@@ -262,12 +272,12 @@ class Kopokopo
     }
 
     /**
-     * @param $payload
-     * @param $signature
-     * @param $api_key
+     * @param string $payload
+     * @param string $signature
+     * @param string $api_key
      * @return int
      */
-    private function validatePayload($payload,$signature,$api_key): int
+    private function validatePayload(string $payload, string $signature, string $api_key): int
     {
         $expectedSignature = hash_hmac('sha256', $payload, $api_key);
         if (hash_equals($signature, $expectedSignature)) {
@@ -277,12 +287,12 @@ class Kopokopo
         }
     }
 
-    public function stkPush($payment_channel,$till_number,$first_name,$last_name,$phone,$email,$amount,$currency,$callback_url,$metadata,$access_token): array
+    public function stkPush(int $amount, string $phone, string $access_token, string $first_name = null, string $last_name = null, string $email = null, string $payment_channel = 'M-PESA STK Push', array $metadata = null): array
     {
 //        $stkPaymentRequest = new StkIncomingPaymentRequest($options);
-        $body=[
+        $body = [
             'payment_channel' => $payment_channel,
-            'till_number' => $till_number,
+            'till_number' => config('kopokopo.stk_till_number'),
             'subscriber' => [
                 'first_name' => $first_name,
                 'last_name' => $last_name,
@@ -290,15 +300,16 @@ class Kopokopo
                 'email' => $email,
             ],
             'amount' => [
-                'currency' => $currency,
+                'currency' => config('kopokopo.currency'),
                 'value' => $amount,
             ],
             'metadata' => $metadata,
             '_links' => [
-                'callback_url' => $callback_url,
+                'callback_url' => config('kopokopo.stk_payment_received_webhook'),
             ],
         ];
-        $headers=[
+        $body = array_filter($body);
+        $headers = [
             'Accept' => 'application/json',
             'Content-Type' => 'application/json',
             'Authorization' => 'Bearer ' . $access_token
@@ -310,22 +321,135 @@ class Kopokopo
         } catch (\GuzzleHttp\Exception\BadResponseException $e) {
             $dataHandler = new FailedResponseData();
             return $this->error($dataHandler->setErrorData($e));
-        } catch(\Exception $e){
+        } catch (\Exception $e) {
             return $this->error($e->getMessage());
         }
     }
 
-    public function addPaymentRecipient(){}
+    public function addPaymentRecipient(string $access_token, string $first_name, string $last_name, string $email, string $phone, string $type = 'mobile_wallet', string $network = 'Safaricom')
+    {
+//        try {
+//            if (!isset($options['type'])) {
+//                throw new \InvalidArgumentException('You have to provide the type');
+//            } elseif ($options['type'] === 'bank_account') {
+//                $body = [
+//                    'type' => $type,
+//                    'pay_recipient' => [
+//                        'account_name' => $this->getAccountName(),
+//                        'bank_branch_ref' => $this->getBankBranchRef(),
+//                        'account_number' => $this->getAccountNumber(),
+//                        'settlement_method' => $this->getSettlementMethod(),
+//                    ],
+//                ];
+//                $payRecipientrequest = new PayRecipientAccountRequest($options);
+//            } elseif ($options['type'] === 'till') {
+//                $payRecipientrequest = new PayRecipientTillRequest($options);
+//            } elseif ($options['type'] === 'paybill') {
+//                $payRecipientrequest = new PayRecipientPaybillRequest($options);
+//            } elseif ($options['type'] === 'mobile_wallet') {
+//                $payRecipientrequest = new PayRecipientMobileRequest($options);
+//            } else {
+//                throw new \InvalidArgumentException('Invalid recipient type');
+//            }
+//
+//            $response = $this->client->post('pay_recipients', ['body' => json_encode($payRecipientrequest->getPayRecipientBody()), 'headers' => $payRecipientrequest->getHeaders()]);
+//
+//            return $this->postSuccess($response);
+//        } catch (\GuzzleHttp\Exception\BadResponseException $e) {
+//            $dataHandler = new FailedResponseData();
+//            return $this->error($dataHandler->setErrorData($e));
+//        } catch (Exception $e) {
+//            return $this->error($e->getMessage());
+//        }
+    }
 
-    public function sendPayment(){}
+    public function sendPayment($destination_type, $destination_reference, $amount, $currency, $description, $category, $tags, $callback_url, $metadata, $access_token)
+    {
+//        $payRequest = new PayRequest($options);
+//        try {
+//            $response = $this->client->post('payments', ['body' => json_encode($payRequest->getPayBody()), 'headers' => $payRequest->getHeaders()]);
+//
+//            return $this->postSuccess($response);
+//        } catch (\GuzzleHttp\Exception\BadResponseException $e) {
+//            $dataHandler = new FailedResponseData();
+//            return $this->error($dataHandler->setErrorData($e));
+//        } catch (\Exception $e) {
+//            return $this->error($e->getMessage());
+//        }
+    }
 
-    public function createMerchantBankAccount(){}
+    public function createMerchantBankAccount($account_name, $bank_branch_ref, $account_number, $settlement_method, $access_token)
+    {
+//        $merchantBankAccountRequest = new MerchantBankAccountRequest($options);
+//        try {
+//            $response = $this->client->post('merchant_bank_accounts', ['body' => json_encode($merchantBankAccountRequest->getSettlementAccountBody()), 'headers' => $merchantBankAccountRequest->getHeaders()]);
+//
+//            return $this->postSuccess($response);
+//        } catch (\GuzzleHttp\Exception\BadResponseException $e) {
+//            $dataHandler = new FailedResponseData();
+//            return $this->error($dataHandler->setErrorData($e));
+//        } catch (Exception $e) {
+//            return $this->error($e->getMessage());
+//        }
+    }
 
-    public function createMerchantWallet(){}
+    public function createMerchantWallet($network, $phone, $first_name, $last_name, $access_token)
+    {
+//        $merchantWalletRequest = new MerchantWalletRequest($options);
+//        try {
+//            $response = $this->client->post('merchant_wallets', ['body' => json_encode($merchantWalletRequest->getSettlementAccountBody()), 'headers' => $merchantWalletRequest->getHeaders()]);
+//
+//            return $this->postSuccess($response);
+//        } catch (\GuzzleHttp\Exception\BadResponseException $e) {
+//            $dataHandler = new FailedResponseData();
+//            return $this->error($dataHandler->setErrorData($e));
+//        } catch (Exception $e) {
+//            return $this->error($e->getMessage());
+//        }
+    }
 
-    public function settleFunds(){}
+    public function settleFunds($amount, $currency, $callback_url, $destination_type, $destination_reference, $access_token)
+    {
+//        $settleFundsRequest = new SettleFundsRequest($options);
+//        try {
+//            $response = $this->client->post('settlement_transfers', ['body' => json_encode($settleFundsRequest->getSettleFundsBody()), 'headers' => $settleFundsRequest->getHeaders()]);
+//
+//            return $this->postSuccess($response);
+//        } catch (\GuzzleHttp\Exception\BadResponseException $e) {
+//            $dataHandler = new FailedResponseData();
+//            return $this->error($dataHandler->setErrorData($e));
+//        } catch (\Exception $e) {
+//            return $this->error($e->getMessage());
+//        }
+    }
 
-    public function pollTransactions(){}
+    public function pollTransactions($scope, $scope_reference, $start_time, $end_time, $callback_url, $access_token)
+    {
+//        $pollingRequest = new PollingRequest($options);
+//        try {
+//            $response = $this->client->post('polling', ['body' => json_encode($pollingRequest->getPollingRequestBody()), 'headers' => $pollingRequest->getHeaders()]);
+//
+//            return $this->postSuccess($response);
+//        } catch (\GuzzleHttp\Exception\BadResponseException $e) {
+//            $dataHandler = new FailedResponseData();
+//            return $this->error($dataHandler->setErrorData($e));
+//        } catch (\Exception $e) {
+//            return $this->error($e->getMessage());
+//        }
+    }
 
-    public function sendTransactionSmsNotification(){}
+    public function sendTransactionSmsNotification($location, $access_token)
+    {
+//        $transactionNotificationRequest = new TransactionSmsNotificationRequest($options);
+//        try {
+//            $response = $this->client->post('transaction_sms_notifications', ['body' => json_encode($transactionNotificationRequest->getSmsNotificationBody()), 'headers' => $transactionNotificationRequest->getHeaders()]);
+//
+//            return $this->postSuccess($response);
+//        } catch (\GuzzleHttp\Exception\BadResponseException $e) {
+//            $dataHandler = new FailedResponseData();
+//            return $this->error($dataHandler->setErrorData($e));
+//        } catch (\Exception $e) {
+//            return $this->error($e->getMessage());
+//        }
+    }
 }

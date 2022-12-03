@@ -4,7 +4,7 @@ namespace Michaelgatuma\Kopokopo\Traits;
 
 trait HasFormattedPayload
 {
-    protected static function success(array $data): array
+    protected static function success(array|string $data): array
     {
         return [
             'status' => 'success',
