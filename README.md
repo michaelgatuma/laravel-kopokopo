@@ -133,6 +133,31 @@ understand what each webhook does.
 When testing on sandbox you can use [ngrok](https://ngrok.com/) to expose your callbacks to the internet. Then
 call `registerWebhooks()` on `Kopokopo` facade. i.e
 
+#### Webhook subscription via terminal commands:
+Publish any webhook by running the command below in your terminal:
+```shell
+php artisan kopokopo:subscribe
+```
+Example:
+```shell
+$ php artisan kopokopo:subscribe
+
+  Enter Event Type:
+  > stk_payment_received_webhook
+  Callback URL i.e https://example.com/b2c-callback:
+  > https://example.com/api//b2c-callback
+  Scope: i.e till,business [till]:
+  > till
+  STK Enabled Till Number [K000000]:
+  > K000000
+```
+You may use the --all option to subscribe to all webhook specified in kopokopo webhooks config i.e
+```shell
+php artisan kopokopo:subscribe --all
+```
+#### Alternatively:
+
+
 > Remember to first import Kopokopo facade with:\
 > `use Kopokopo;`
 
@@ -209,9 +234,9 @@ $access_token,$first_name,$last_name,$email,$phone
 );
 $create_recipient_response = Kopokopo::PayService()->addPayRecipient([
   'type' => 'mobile_wallet',
-  'firstName'=> 'John',
-  'lastName'=> 'Doe',
-  'email'=> 'johndoe@nomail.net',
+  'firstName'=> 'Michael',
+  'lastName'=> 'Gatuma',
+  'email'=> 'example@nomail.net',
   'phoneNumber'=> '+254999999999',
   'network'=> 'Safaricom',
   'accessToken' => 'myRand0mAcc3ssT0k3n'
@@ -293,7 +318,7 @@ the [MIT license](https://opensource.org/licenses/MIT)
 
 ## Tags
 
-laravel, kopokopo, kopo kopo, k2-connect,k2-connect-php, mpesa, package
+laravel, mpesa, kopokopo, k2-connect,k2-connect-php, laravel-mpesa, php, stk-push
 
 [ico-version]: https://img.shields.io/packagist/v/michaelgatuma/kopokopo.svg?style=flat-square
 

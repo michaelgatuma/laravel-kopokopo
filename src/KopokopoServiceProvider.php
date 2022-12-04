@@ -4,6 +4,7 @@ namespace Michaelgatuma\Kopokopo;
 
 use Illuminate\Support\ServiceProvider;
 use Michaelgatuma\Kopokopo\Console\InstallKopokopo;
+use Michaelgatuma\Kopokopo\Console\SubscribeWebhook;
 
 class KopokopoServiceProvider extends ServiceProvider
 {
@@ -80,6 +81,7 @@ class KopokopoServiceProvider extends ServiceProvider
         // Registering package commands.
          $this->commands([
              InstallKopokopo::class,
+             SubscribeWebhook::class,
          ]);
     }
 }

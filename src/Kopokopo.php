@@ -71,7 +71,7 @@ class Kopokopo
      */
     protected Client $auth_client;
 
-    private string $auth_token;
+    public string $token;
 
     protected array $headers = [
         'Content-Type' => 'application/json',
@@ -120,7 +120,7 @@ class Kopokopo
     private function getHeaders(): array
     {
         return [
-            'Authorization' => $this->auth_token
+            'Authorization' => 'Bearer ' . $this->token
         ];
     }
 
@@ -133,11 +133,13 @@ class Kopokopo
     {
         if (is_array($token)) {
             if ($token['status'] == 'success') {
-                $this->auth_token = $token['data']['tokenType'] . ' ' . $token['data']['accessToken'];
+                $this->token = $token['data']['accessToken'];
             }
         } else {
-            $this->auth_token = 'Bearer ' . $token;
+            $this->token = $token;
         }
+
+        $this->headers['Authorization']='Bearer '.$this->token;
 
         return $this;
     }
@@ -266,7 +268,7 @@ class Kopokopo
      * @return array
      */
     public
-    function subscribeWebhook(string $event_type, string $url, string $scope, int $till): array
+    function subscribeWebhook(string $event_type, string $url, string $scope, string $till): array
     {
         try {
 //            $subscribeRequest = new WebhookSubscribeRequest($options);
