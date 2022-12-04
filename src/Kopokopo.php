@@ -69,7 +69,7 @@ class Kopokopo
      * GuzzleHttp Client to handle token services requests
      * @var Client $client
      */
-    protected Client $token_client;
+    protected Client $auth_client;
 
     private string $auth_token;
 
@@ -96,7 +96,7 @@ class Kopokopo
         $this->stk_till_number = config('kopokopo.stk_till_number');
         $this->currency = config('kopokopo.currency');
 
-        $this->token_client = new Client([
+        $this->auth_client = new Client([
             'base_uri' => $this->base_url,
             'headers' => [
                 'Content-Type' => 'application/json',
@@ -131,9 +131,14 @@ class Kopokopo
      */
     #[NoReturn] public function authenticate($token): static
     {
-        if ($token['status'] == 'success') {
-            $this->auth_token = $token['data']['tokenType'] . ' ' . $token['data']['accessToken'];
+        if (is_array($token)) {
+            if ($token['status'] == 'success') {
+                $this->auth_token = $token['data']['tokenType'] . ' ' . $token['data']['accessToken'];
+            }
+        } else {
+            $this->auth_token = 'Bearer ' . $token;
         }
+
         return $this;
     }
 
@@ -145,7 +150,7 @@ class Kopokopo
     function getAccessToken(): array
     {
         try {
-            $res = $this->token_client->postAsync('oauth/token', ['form_params' => [
+            $res = $this->auth_client->postAsync('oauth/token', ['form_params' => [
                 'client_id' => $this->client_id,
                 'client_secret' => $this->client_secret,
                 'grant_type' => 'client_credentials',
@@ -177,7 +182,7 @@ class Kopokopo
                 'token' => $token,
             ];
 
-            $response = $this->token_client->postAsync('oauth/revoke', ['form_params' => $requestData])->wait();
+            $response = $this->auth_client->postAsync('oauth/revoke', ['form_params' => $requestData])->wait();
 
             return $this->success($response->getBody()->getContents());
         } catch (BadResponseException $e) {
@@ -202,7 +207,7 @@ class Kopokopo
                 'client_secret' => $this->client_secret,
                 'token' => $token,
             ];
-            $response = $this->token_client->postAsync('oauth/introspect', ['form_params' => $requestData])->wait();
+            $response = $this->auth_client->postAsync('oauth/introspect', ['form_params' => $requestData])->wait();
             $dataHandler = new TokenData();
             return $this->success($dataHandler->setIntrospectTokenData(json_decode($response->getBody()->getContents(), true)));
         } catch (BadResponseException $e) {
@@ -222,7 +227,7 @@ class Kopokopo
     function getTokenInfo(string $token): array
     {
         try {
-            $response = $this->token_client->getAsync('oauth/token/info', [
+            $response = $this->auth_client->getAsync('oauth/token/info', [
                 'headers' =>
                     [
                         'Accept' => 'application/json',
@@ -243,11 +248,11 @@ class Kopokopo
     }
 
     public
-    function subscribeRegisteredWebhooks($access_token): array
+    function subscribeRegisteredWebhooks(): array
     {
         $webhooks = config('kopokopo.webhooks');
         foreach ($webhooks as $event_type => $url) {
-            $this->subscribeWebhook($event_type, $url, $this->scope, $this->till_number, $access_token);
+            $this->subscribeWebhook($event_type, $url, $this->scope, $this->till_number);
         }
         return self::success("Webhooks Registered");
     }
@@ -258,11 +263,10 @@ class Kopokopo
      * @param string $url
      * @param string $scope
      * @param int $till
-     * @param string $access_token
      * @return array
      */
     public
-    function subscribeWebhook(string $event_type, string $url, string $scope, int $till, string $access_token): array
+    function subscribeWebhook(string $event_type, string $url, string $scope, int $till): array
     {
         try {
 //            $subscribeRequest = new WebhookSubscribeRequest($options);
