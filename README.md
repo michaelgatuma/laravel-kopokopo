@@ -141,15 +141,14 @@ call `registerWebhooks()` on `Kopokopo` facade. i.e
 $token=Kopokopo::getToken();
 
 // subscribe all webhooks registered in config file
-$response = Kopokopo::subscribeRegisteredWebhooks($token);
+$response = Kopokopo::authenticate($token)->subscribeRegisteredWebhooks();
  
  //subscribe a specific webhook
- $res = Kopokopo::subscribeWebhook(
+ $res = Kopokopo::authenticate($token)->subscribeWebhook(
     event_type: 'buygoods_transaction_received',
     url: 'https://myawesomeapplication.com/destination',
     scope: 'till',
     till: 7777777,
-    access_token: 'my_access_token'
  )
  
 // HTTP/1.1 201 Created Location: https://sandbox.kopokopo.com/api/v1/webhook_subscriptions/d76265cd-0951-e522-80da-0aa34a9b2388
@@ -164,7 +163,7 @@ json HTTP response;
 You can receive payments from M-PESA users via STK Push. You can initiate payment like this;
 
 ```php
-$res= Kopokopo::stkPush(
+$res= Kopokopo::authenticate('my_access_token')->stkPush(
     amount:  2230,
     phone: '+254799999999',
     first_name: 'Michael',//optional
