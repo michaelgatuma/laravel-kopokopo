@@ -27,34 +27,37 @@ callback URLs and required credentials.
 
 return [
     // Set this to false if you cannot authenticate due to SSL certificate problem.
-    'curl_ssl_verify' => true,
+    'curl_ssl_verify' => false,
 
     // When you are testing in sandbox environment this remains true, to go to a live environment set it to false
-    'sandbox' => true,
+    'sandbox' => false,
 
     /* The below values should not be hardcoded for security reason. Add these variables in .env
     *  i.e KOPOKOPO_CLIENT_ID, KOPOKOPO_CLIENT_SECRET, KOPOKOPO_API_KEY
     */
     # This is the application id acquired after you create an Authorization application on the kopokopo dashboard
-    'client_id' => env('KOPOKOPO_CLIENT_ID', 'BOPgOCAGF0gsUNH794EfjtmLiMEJ1BfMXjTZ2FrZM8'),
+    'client_id' => env('KOPOKOPO_CLIENT_ID', 'EXAMPLE_CLIENT_ID'),
 
     # The kopokopo application client secret
-    'client_secret' => env('KOPOKOPO_CLIENT_SECRET', '8KGf7aoHzHezjLpHzyF5NdJFd-T-Q1DewYyKrpiBX_s'),
+    'client_secret' => env('KOPOKOPO_CLIENT_SECRET', 'EXAMPLE_CLIENT_SECRET'),
 
     # The kopokopo application api key
-    'api_key' => env('KOPOKOPO_API_KEY', 'EuavW1N-H1UMk4D-9XPKPudGGZ3yFBiygEwfkWDes_I'),
+    'api_key' => env('KOPOKOPO_API_KEY', 'EXAMPLE_APIKEY'),
 
     // Define the scope of your applications control on kopokopo transaction. Using company will control transactions for all till numbers regardless
     'scope' => 'till', //i.e company, till
 
     // The business till number given to you by Kopokopo
-    'till_number' => '8293219',
+    'till_number' => '0000000',
+
+    // The business till number given to you by Kopokopo
+    'stk_till_number' => 'K000000',
 
     // Preferred transacting currency i.e KES, USD, AUD
     'currency' => 'KES',
 
-    // Webhooks are a means of getting notified on your laravel application of events in the Kopo Kopo application. i.e https://api-docs.kopokopo.com/#webhooks
-    // Below values will be used to register your webhooks on Kopokopo. For it to work, update the values and use Kopokopo::registerWebhooks() to register
+    // Webhooks are a means of getting notified on your laravel application of events in the Kopokopo application. i.e https://api-docs.kopokopo.com/#webhooks
+    // Below values will be used to register your webhooks on Kopokopo. For it to work, update the values and use Kopokopo::subscribeRegisteredWebhooks() to register
     'webhooks' => [
         'buygoods_transaction_received' => 'https://example.com/k2transrec',
         'buygoods_transaction_reversed' => 'https://example.com/k2transrev',
@@ -64,10 +67,11 @@ return [
         'customer_created' => 'https://example.com/k2custcr'
     ],
 
-    // This webhook is used to get notified of a successfull mpesa stk payment
-    'stk_payment_received_webhook' => 'https://example.com/k2stkreceiv',
+    // This webhook is used to get notified of a successful Mpesa stk payment
+    'stk_payment_received_webhook' => 'https://example.com/mobile-stk-received',
 
 ];
+
 
 ```
 
@@ -87,9 +91,9 @@ For security reasons you may want to define your API credentials in `env` file. 
 ```dotenv
 # .env
 # ...
-KOPOKOPO_CLIENT_ID="BOPgOCAGF0gsUNH794EfjtmLiMEJ1BfMXjTZ2FrZM8"
-KOPOKOPO_CLIENT_SECRET="8KGf7aoHzHezjLpHzyF5NdJFd-T-Q1DewYyKrpiBX_s"
-KOPOKOPO_API_KEY="EuavW1N-H1UMk4D-9XPKPudGGZ3yFBiygEwfkWDes_I"
+KOPOKOPO_CLIENT_ID="BOPgOFAKE0gsUNH794EfjtmLiKTJ1BfMXjTZ2FrZM8"
+KOPOKOPO_CLIENT_SECRET="8KGfakeHzHezjLpHzyP3NdJFd-T-Q1DewYyKrpiBX_s"
+KOPOKOPO_API_KEY="EuavW1N-FAKEk4D-9XRLPudGGZ3yFBiygEwfkWDes_I"
 # ...
 ```
 
@@ -97,28 +101,26 @@ KOPOKOPO_API_KEY="EuavW1N-H1UMk4D-9XPKPudGGZ3yFBiygEwfkWDes_I"
 
 ### First things first...Authorization
 
-> N/B: You can skip the authorization step unless you need to carry out a number of operations in a single execution. Otherwise, the rest of the steps automatically acquire the access_token before calling the API>
+> N/B: You can skip the authorization step unless you need to carry out a number of operations in a single execution.
+> Otherwise, the rest of the steps automatically acquire the access_token before calling the API>
 
 
-Kopo Kopo uses Oauth2 to allow access to the Kopo Kopo API so before anything else, Kopokopo API expects the application `access token` to be used to make calls to the Kopo Kopo API on behalf of the application.
+Kopo Kopo uses Oauth2 to allow access to the Kopo Kopo API so before anything else, Kopokopo API expects the
+application `access token` to be used to make calls to the Kopo Kopo API on behalf of the application.
 To acquire the token, you need to call the token service like below:
+
 ```php
-//initialize kopokopo
-$kopokopo=new Kopokopo();
-// Get the token (optional if needed later)
-$token=$kopokopo->TokenService()->getToken();
+<?php
+use Kopokopo;
+...
+// Get the token
+$token=Kopokopo::getToken();
+
+//introspect token
+Kopokopo::introspectToken($token);
+
 //revoke access token
-$kopokopo->TokenService()->revokeToken(['accessToken' => $token])
-
-//use kopokopo instance i.e subscribe to webhooks..
-$response =$kopokopo->Webhooks()->subscribe([
-    'eventType' => 'buygoods_transaction_received',
-    'url' => 'https://myawesomeapplication.com/destination',
-    'scope' => 'till',
-    'scopeReference' => '555555', // Your till number
-    'accessToken' => 'my_access_token'
-]);
-
+Kopokopo::revokeToken($token);
 ```
 
 ### Webhook Subscription
@@ -131,19 +133,26 @@ understand what each webhook does.
 When testing on sandbox you can use [ngrok](https://ngrok.com/) to expose your callbacks to the internet. Then
 call `registerWebhooks()` on `Kopokopo` facade. i.e
 
-> Remember to import `Kopokopo facade`
->> `use Kopokopo;`
+> Remember to first import Kopokopo facade with:\
+> `use Kopokopo;`
 
 ```php
 ...
-$registration_response=Kopokopo::Webhooks()->subscribe([
-    'eventType' => 'buygoods_transaction_received',
-    'url' => 'https://myawesomeapplication.com/destination',
-    'scope' => 'till',
-    'scopeReference' => '555555', // Your till number
-    'accessToken' => 'my_access_token'
-]);
-// HTTP/1.1 201 Created Location: https://sandbox.kopokopo.com/api/v1/webhook_subscriptions/d76265cd-0951-e511-80da-0aa34a9b2388
+$token=Kopokopo::getToken();
+
+// subscribe all webhooks registered in config file
+$response = Kopokopo::subscribeRegisteredWebhooks($token);
+ 
+ //subscribe a specific webhook
+ $res = Kopokopo::subscribeWebhook(
+    event_type: 'buygoods_transaction_received',
+    url: 'https://myawesomeapplication.com/destination',
+    scope: 'till',
+    till: 7777777,
+    access_token: 'my_access_token'
+ )
+ 
+// HTTP/1.1 201 Created Location: https://sandbox.kopokopo.com/api/v1/webhook_subscriptions/d76265cd-0951-e522-80da-0aa34a9b2388
 ...
 ```
 
@@ -155,26 +164,21 @@ json HTTP response;
 You can receive payments from M-PESA users via STK Push. You can initiate payment like this;
 
 ```php
-$payment_response=Kopokopo::StkService()->initiateIncomingPayment([
-  'paymentChannel' => 'M-PESA STK Push',
-  'tillNumber' => 'K000000',
-  'firstName' => 'Jane',
-  'lastName' => 'Doe',
-  'phoneNumber' => '+254999999999',
-  'amount' => 3455,
-  'currency' => 'KES',
-  'email' => 'example@example.com',
-  'callbackUrl' => 'https://callback_to_your_app.your_application.com/endpoint',
-  'metadata' => [
-    'customerId' => '123456789',
-    'reference' => '123456',
-    'notes' => 'Payment for invoice 12345'
-  ],
-  'accessToken' => 'myRand0mAcc3ssT0k3n',
-]);
-if($payment_response['status'] == 'success')
+$res= Kopokopo::stkPush(
+    amount:  2230,
+    phone: '+254799999999',
+    first_name: 'Michael',//optional
+    last_name: 'Gatuma',//optional
+    email: 'clientemail@gmail.com',//optional
+    metadata: [
+        'user_id'=>1,
+        'action'=>'deposit'
+    ]//optional
+);
+
+if($res['status'] == 'success')
 {
-    echo "The resource location is:" . json_encode($response['location']);
+    dump ("The resource location is:" . json_encode($res['location']));
     // => 'https://sandbox.kopokopo.com/api/v1/incoming_payments/247b1bd8-f5a0-4b71-a898-f62f67b8ae1c'
 }
 ```
@@ -186,7 +190,7 @@ newly created Incoming Payment.
 
 ### Query Incoming Payment Status
 
->Coming Soon
+> Coming Soon
 
 ### Create Payment Recipients
 
@@ -198,6 +202,9 @@ The following are the different types of pay recipients you can create with exam
 Create Pay Recipient for a Mobile Wallet recipient;
 
 ```php
+$res=Kopokopo::addPaymentRecipient(
+$access_token,$first_name,$last_name,$email,$phone
+);
 $create_recipient_response = Kopokopo::PayService()->addPayRecipient([
   'type' => 'mobile_wallet',
   'firstName'=> 'John',
@@ -221,41 +228,41 @@ is also returned in the HTTP Location Header
 
 #### (b). Bank Account
 
->Coming Soon
+> Coming Soon
 
 #### (c). External Till
 
->Coming Soon
+> Coming Soon
 
 #### (c). Paybill
 
->Coming Soon
+> Coming Soon
 
 ### Make Outgoing Payments
 
->Coming Soon
+> Coming Soon
 
 ### Query Outgoing Payment Status
 
->Coming Soon
+> Coming Soon
 
 ### Transfer to your settling account(s)
 
 Transfer funds to your pre-approved settlement accounts (bank accounts or mobile wallets).
 
->Coming Soon
+> Coming Soon
 
 ### Polling
 
 Poll Buygoods Transactions between the specified dates for a particular till or for the whole company.
 
->Coming Soon
+> Coming Soon
 
 ### Transaction SMS Notifications API Requests
 
 Send sms notifications to your customer after you have received a payment from them.
 
->Coming Soon
+> Coming Soon
 
 ## Change log
 
@@ -287,13 +294,21 @@ the [MIT license](https://opensource.org/licenses/MIT)
 laravel, kopokopo, kopo kopo, k2-connect,k2-connect-php, mpesa, package
 
 [ico-version]: https://img.shields.io/packagist/v/michaelgatuma/kopokopo.svg?style=flat-square
+
 [ico-downloads]: https://img.shields.io/packagist/dt/michaelgatuma/kopokopo.svg?style=flat-square
+
 [ico-travis]: https://img.shields.io/travis/michaelgatuma/kopokopo/master.svg?style=flat-square
+
 [ico-styleci]: https://styleci.io/repos/12345678/shield
 
 [link-packagist]: https://packagist.org/packages/michaelgatuma/kopokopo
+
 [link-downloads]: https://packagist.org/packages/michaelgatuma/kopokopo
+
 [link-travis]: https://travis-ci.org/michaelgatuma/kopokopo
+
 [link-styleci]: https://styleci.io/repos/12345678
+
 [link-author]: https://github.com/michaelgatuma
+
 [link-contributors]: ../../contributors
