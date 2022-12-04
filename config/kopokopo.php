@@ -23,18 +23,18 @@ return [
     'scope' => 'till', //i.e company, till
 
     // The business till number given to you by Kopokopo
-    'till_number' => '9731173',
+    'till_number' => '0000000',
 
     // The business till number given to you by Kopokopo
-    'stk_till_number' => 'K786310',
+    'stk_till_number' => 'K000000',
 
     // Preferred transacting currency i.e KES, USD, AUD
     'currency' => 'KES',
 
-    // Webhooks are a means of getting notified on your laravel application of events in the Kopo Kopo application. i.e https://api-docs.kopokopo.com/#webhooks
-    // Below values will be used to register your webhooks on Kopokopo. For it to work, update the values and use Kopokopo::registerWebhooks() to register
+    // Webhooks are a means of getting notified on your laravel application of events in the Kopokopo application. i.e https://api-docs.kopokopo.com/#webhooks
+    // Below values will be used to register your webhooks on Kopokopo. For it to work, update the values and use Kopokopo::subscribeRegisteredWebhooks() to register
     'webhooks' => [
-        'buygoods_transaction_received' => 'https://upworkstation.com/api/payments/k2-endpoints/buygoods-received-transaction-bell',
+        'buygoods_transaction_received' => 'https://example.com/k2transrec',
         'buygoods_transaction_reversed' => 'https://example.com/k2transrev',
         'b2b_transaction_received' => 'https://example.com/k2b2btransrec',
         'm2m_transaction_received' => 'https://example.com/k2m2mtransrec',
@@ -42,7 +42,7 @@ return [
         'customer_created' => 'https://example.com/k2custcr'
     ],
 
-    // This webhook is used to get notified of a successfull mpesa stk payment
-    'stk_payment_received_webhook' => 'https://upworkstation.com/api/payments/k2-endpoints/mobile-stk-received',
+    // This webhook is used to get notified of a successful Mpesa stk payment
+    'stk_payment_received_webhook' => 'https://example.com/mobile-stk-received',
 
 ];

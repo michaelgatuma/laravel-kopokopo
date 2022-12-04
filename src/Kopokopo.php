@@ -6,8 +6,10 @@ use Exception;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\BadResponseException;
 use GuzzleHttp\Exception\GuzzleException;
+use GuzzleHttp\Psr7\Request;
 use Illuminate\Support\Arr;
 use InvalidArgumentException;
+use JetBrains\PhpStorm\NoReturn;
 use Michaelgatuma\Kopokopo\Data\DataHandler;
 use Michaelgatuma\Kopokopo\Data\FailedResponseData;
 use Michaelgatuma\Kopokopo\Data\TokenData;
@@ -69,6 +71,13 @@ class Kopokopo
      */
     protected Client $token_client;
 
+    private string $auth_token;
+
+    protected array $headers = [
+        'Content-Type' => 'application/json',
+        'Accept' => 'application/json',
+    ];
+
     /**
      * Initializes the class with an array of API values.
      */
@@ -77,9 +86,8 @@ class Kopokopo
         if (config('kopokopo.sandbox')) {
             $this->base_url = "https://sandbox.kopokopo.com";
         } else {
-            $this->base_url = "https://app.kopokopo.com";
+            $this->base_url = "https://api.kopokopo.com";
         }
-
         $this->client_id = config('kopokopo.client_id');
         $this->client_secret = config('kopokopo.client_secret');
         $this->api_key = config('kopokopo.api_key');
@@ -88,12 +96,16 @@ class Kopokopo
         $this->stk_till_number = config('kopokopo.stk_till_number');
         $this->currency = config('kopokopo.currency');
 
-        $this->client = new Client([
-            'base_uri' => $this->base_url . "/api/" . $this->version,
-        ]);
-
         $this->token_client = new Client([
             'base_uri' => $this->base_url,
+            'headers' => [
+                'Content-Type' => 'application/json',
+                'Accept' => 'application/json',
+            ],
+        ]);
+
+        $this->client = new Client([
+            'base_uri' => $this->base_url . "/api/" . $this->version . '/',
             'headers' => [
                 'Content-Type' => 'application/json',
                 'Accept' => 'application/json',
@@ -102,10 +114,35 @@ class Kopokopo
     }
 
     /**
+     * Return dynamic headers
+     * @return string[]
+     */
+    private function getHeaders(): array
+    {
+        return [
+            'Authorization' => $this->auth_token
+        ];
+    }
+
+    /**
+     * Authenticate with the api before sending any requests
+     * @param $token
+     * @return $this
+     */
+    #[NoReturn] public function authenticate($token): static
+    {
+        if ($token['status'] == 'success') {
+            $this->auth_token = $token['data']['tokenType'] . ' ' . $token['data']['accessToken'];
+        }
+        return $this;
+    }
+
+    /**
      * The client credentials flow is the simplest OAuth 2 grant, with a server-to-server exchange of your application’s client_id, client_secret for an OAuth application access token
      * @return array
      */
-    public function getAccessToken(): array
+    public
+    function getAccessToken(): array
     {
         try {
             $res = $this->token_client->postAsync('oauth/token', ['form_params' => [
@@ -130,7 +167,8 @@ class Kopokopo
      * @param string $token
      * @return array
      */
-    public function revokeToken(string $token): array
+    public
+    function revokeToken(string $token): array
     {
         try {
             $requestData = [
@@ -155,7 +193,8 @@ class Kopokopo
      * @param string $token
      * @return array
      */
-    public function introspectToken(string $token): array
+    public
+    function introspectToken(string $token): array
     {
         try {
             $requestData = [
@@ -179,7 +218,8 @@ class Kopokopo
      * @param string $token
      * @return array
      */
-    public function getTokenInfo(string $token): array
+    public
+    function getTokenInfo(string $token): array
     {
         try {
             $response = $this->token_client->getAsync('oauth/token/info', [
@@ -202,11 +242,12 @@ class Kopokopo
         }
     }
 
-    public function subscribeRegisteredWebhooks($access_token): array
+    public
+    function subscribeRegisteredWebhooks($access_token): array
     {
         $webhooks = config('kopokopo.webhooks');
         foreach ($webhooks as $event_type => $url) {
-            $this->subscribeWebhook($event_type, $url, config('kopokopo.scope'), config('kopokopo.till_number'), $access_token);
+            $this->subscribeWebhook($event_type, $url, $this->scope, $this->till_number, $access_token);
         }
         return self::success("Webhooks Registered");
     }
@@ -220,7 +261,8 @@ class Kopokopo
      * @param string $access_token
      * @return array
      */
-    public function subscribeWebhook(string $event_type, string $url, string $scope, int $till, string $access_token): array
+    public
+    function subscribeWebhook(string $event_type, string $url, string $scope, int $till, string $access_token): array
     {
         try {
 //            $subscribeRequest = new WebhookSubscribeRequest($options);
@@ -230,12 +272,7 @@ class Kopokopo
                 'scope' => $scope,
                 'scope_reference' => $till
             ];
-            $response = $this->client->postAsync('webhook_subscriptions', ['body' => json_encode($body), 'headers' =>
-                [
-                    'Accept' => 'application/json',
-                    'Content-Type' => 'application/json',
-                    'Authorization' => 'Bearer ' . $access_token
-                ]]);
+            $response = $this->client->postAsync('webhook_subscriptions', ['body' => json_encode($body), 'headers' => $this->headers])->wait();
 
             return $this->postSuccess($response);
         } catch (BadResponseException $e) {
@@ -253,7 +290,8 @@ class Kopokopo
      * @param string $signature
      * @return array
      */
-    public function webhookHandler(string $payload, string $signature): array
+    public
+    function webhookHandler(string $payload, string $signature): array
     {
 
         if (empty($payload) || empty($signature)) {
@@ -277,7 +315,8 @@ class Kopokopo
      * @param string $api_key
      * @return int
      */
-    private function validatePayload(string $payload, string $signature, string $api_key): int
+    private
+    function validatePayload(string $payload, string $signature, string $api_key): int
     {
         $expectedSignature = hash_hmac('sha256', $payload, $api_key);
         if (hash_equals($signature, $expectedSignature)) {
@@ -287,12 +326,23 @@ class Kopokopo
         }
     }
 
-    public function stkPush(int $amount, string $phone, string $access_token, string $first_name = null, string $last_name = null, string $email = null, string $payment_channel = 'M-PESA STK Push', array $metadata = null): array
+    /**
+     * @param int $amount
+     * @param string $phone
+     * @param string|null $first_name
+     * @param string|null $last_name
+     * @param string|null $email
+     * @param string $payment_channel
+     * @param array|null $metadata
+     * @return array
+     */
+    public
+    function stkPush(int $amount, string $phone, string $first_name = null, string $last_name = null, string $email = null, string $payment_channel = 'M-PESA STK Push', array $metadata = null): array
     {
-//        $stkPaymentRequest = new StkIncomingPaymentRequest($options);
+
         $body = [
             'payment_channel' => $payment_channel,
-            'till_number' => config('kopokopo.stk_till_number'),
+            'till_number' => $this->stk_till_number,
             'subscriber' => [
                 'first_name' => $first_name,
                 'last_name' => $last_name,
@@ -300,7 +350,7 @@ class Kopokopo
                 'email' => $email,
             ],
             'amount' => [
-                'currency' => config('kopokopo.currency'),
+                'currency' => $this->currency,
                 'value' => $amount,
             ],
             'metadata' => $metadata,
@@ -308,25 +358,43 @@ class Kopokopo
                 'callback_url' => config('kopokopo.stk_payment_received_webhook'),
             ],
         ];
-        $body = array_filter($body);
-        $headers = [
-            'Accept' => 'application/json',
-            'Content-Type' => 'application/json',
-            'Authorization' => 'Bearer ' . $access_token
-        ];
-        try {
-            $response = $this->client->postAsync('incoming_payments', ['body' => json_encode($body), 'headers' => $headers])->wait();
 
+        try {
+            $response = $this->client->postAsync('incoming_payments', ['body' => json_encode($body), 'headers' => $this->getHeaders()])->wait();
             return $this->postSuccess($response);
-        } catch (\GuzzleHttp\Exception\BadResponseException $e) {
+        } catch (BadResponseException $e) {
             $dataHandler = new FailedResponseData();
             return $this->error($dataHandler->setErrorData($e));
+        } catch (GuzzleException $e) {
+            return $this->error($e->getMessage());
         } catch (\Exception $e) {
             return $this->error($e->getMessage());
         }
     }
 
-    public function addPaymentRecipient(string $access_token, string $first_name, string $last_name, string $email, string $phone, string $type = 'mobile_wallet', string $network = 'Safaricom')
+    /**
+     * @param $location
+     * @return array
+     */
+    public
+    function getStatus($location): array
+    {
+        try {
+            $response = $this->client->get($location, ['headers' => $this->headers]);
+            $dataHandler = new DataHandler(json_decode($response->getBody()->getContents(), true));
+            return $this->success($dataHandler->dataHandlerSort());
+        } catch (BadResponseException $e) {
+            $dataHandler = new FailedResponseData();
+            return $this->error($dataHandler->setErrorData($e));
+        } catch (GuzzleException $e) {
+            return $this->error($e->getMessage());
+        } catch (Exception $e) {
+            return $this->error($e->getMessage());
+        }
+    }
+
+    public
+    function addPaymentRecipient(string $access_token, string $first_name, string $last_name, string $email, string $phone, string $type = 'mobile_wallet', string $network = 'Safaricom')
     {
 //        try {
 //            if (!isset($options['type'])) {
@@ -363,7 +431,8 @@ class Kopokopo
 //        }
     }
 
-    public function sendPayment($destination_type, $destination_reference, $amount, $currency, $description, $category, $tags, $callback_url, $metadata, $access_token)
+    public
+    function sendPayment($destination_type, $destination_reference, $amount, $currency, $description, $category, $tags, $callback_url, $metadata, $access_token)
     {
 //        $payRequest = new PayRequest($options);
 //        try {
@@ -378,7 +447,8 @@ class Kopokopo
 //        }
     }
 
-    public function createMerchantBankAccount($account_name, $bank_branch_ref, $account_number, $settlement_method, $access_token)
+    public
+    function createMerchantBankAccount($account_name, $bank_branch_ref, $account_number, $settlement_method, $access_token)
     {
 //        $merchantBankAccountRequest = new MerchantBankAccountRequest($options);
 //        try {
@@ -393,7 +463,8 @@ class Kopokopo
 //        }
     }
 
-    public function createMerchantWallet($network, $phone, $first_name, $last_name, $access_token)
+    public
+    function createMerchantWallet($network, $phone, $first_name, $last_name, $access_token)
     {
 //        $merchantWalletRequest = new MerchantWalletRequest($options);
 //        try {
@@ -408,7 +479,8 @@ class Kopokopo
 //        }
     }
 
-    public function settleFunds($amount, $currency, $callback_url, $destination_type, $destination_reference, $access_token)
+    public
+    function settleFunds($amount, $currency, $callback_url, $destination_type, $destination_reference, $access_token)
     {
 //        $settleFundsRequest = new SettleFundsRequest($options);
 //        try {
@@ -423,7 +495,8 @@ class Kopokopo
 //        }
     }
 
-    public function pollTransactions($scope, $scope_reference, $start_time, $end_time, $callback_url, $access_token)
+    public
+    function pollTransactions($scope, $scope_reference, $start_time, $end_time, $callback_url, $access_token)
     {
 //        $pollingRequest = new PollingRequest($options);
 //        try {
@@ -438,7 +511,8 @@ class Kopokopo
 //        }
     }
 
-    public function sendTransactionSmsNotification($location, $access_token)
+    public
+    function sendTransactionSmsNotification($location, $access_token)
     {
 //        $transactionNotificationRequest = new TransactionSmsNotificationRequest($options);
 //        try {
