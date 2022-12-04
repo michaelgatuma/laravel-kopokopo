@@ -190,6 +190,9 @@ newly created Incoming Payment.
 ### Query Incoming Payment Status
 
 > Coming Soon
+```php
+$res=Kopokopo::getStatus($location);
+```
 
 ### Create Payment Recipients
 
