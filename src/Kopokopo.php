@@ -297,7 +297,7 @@ class Kopokopo
      * @return array
      */
     public
-    function webhookHandler(string $payload, string $signature): array
+    function webhookHandler(string $payload, string|null $signature): array
     {
 
         if (empty($payload) || empty($signature)) {

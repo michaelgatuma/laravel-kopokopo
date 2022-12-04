@@ -6,6 +6,7 @@ class StkData
 {
     public static function setData($result)
     {
+        return $result; //because the below code by kopokopo seem erroneous and redundant
         $data['id'] = $result['id'];
         $data['type'] = $result['type'];
 
