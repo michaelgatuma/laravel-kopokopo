@@ -64,6 +64,8 @@ class Kopokopo
      * GuzzleHttp Client to handle all the requests
      * @var Client $client
      */
+    public string $stk_webhook;
+    public array $webhooks;
     protected Client $client;
     /**
      * GuzzleHttp Client to handle token services requests
@@ -81,36 +83,56 @@ class Kopokopo
     /**
      * Initializes the class with an array of API values.
      */
-    public function __construct()
+    public function __construct($config = null, $http_client = null)
     {
-        if (config('kopokopo.sandbox')) {
-            $this->base_url = "https://sandbox.kopokopo.com";
+        if (is_null($config)) {
+            if (config('kopokopo.sandbox')) {
+                $this->base_url = "https://sandbox.kopokopo.com";
+            } else {
+                $this->base_url = "https://api.kopokopo.com";
+            }
+            $this->client_id = config('kopokopo.client_id');
+            $this->client_secret = config('kopokopo.client_secret');
+            $this->api_key = config('kopokopo.api_key');
+            $this->scope = config('kopokopo.scope');
+            $this->till_number = config('kopokopo.till_number');
+            $this->stk_till_number = config('kopokopo.stk_till_number');
+            $this->currency = config('kopokopo.currency');
+            $this->webhooks = config('kopokopo.webhooks');
+            $this->stk_webhook = config('kopokopo.stk_payment_received_webhook');
         } else {
-            $this->base_url = "https://api.kopokopo.com";
+            $this->base_url = $config['baseUrl'];
+            $this->client_id = $config['clientId'];
+            $this->client_secret = $config['clientSecret'];
+            $this->api_key = $config['apiKey'];
+            $this->scope = $config['scope'];
+            $this->till_number = $config['till'];
+            $this->stk_till_number = $config['stkTill'];
+            $this->currency = $config['currency'];
+            $this->webhooks = $config['webhooks'];
+            $this->stk_webhook = $config['stkWebhook'];
+            $this->token='your_access_token';
         }
-        $this->client_id = config('kopokopo.client_id');
-        $this->client_secret = config('kopokopo.client_secret');
-        $this->api_key = config('kopokopo.api_key');
-        $this->scope = config('kopokopo.scope');
-        $this->till_number = config('kopokopo.till_number');
-        $this->stk_till_number = config('kopokopo.stk_till_number');
-        $this->currency = config('kopokopo.currency');
+        if (is_null($http_client)) {
+            $this->auth_client = new Client([
+                'base_uri' => $this->base_url,
+                'headers' => [
+                    'Content-Type' => 'application/json',
+                    'Accept' => 'application/json',
+                ],
+            ]);
 
-        $this->auth_client = new Client([
-            'base_uri' => $this->base_url,
-            'headers' => [
-                'Content-Type' => 'application/json',
-                'Accept' => 'application/json',
-            ],
-        ]);
-
-        $this->client = new Client([
-            'base_uri' => $this->base_url . "/api/" . $this->version . '/',
-            'headers' => [
-                'Content-Type' => 'application/json',
-                'Accept' => 'application/json',
-            ],
-        ]);
+            $this->client = new Client([
+                'base_uri' => $this->base_url . "/api/" . $this->version . '/',
+                'headers' => [
+                    'Content-Type' => 'application/json',
+                    'Accept' => 'application/json',
+                ],
+            ]);
+        } else {
+            $this->auth_client = $http_client;
+            $this->client = $http_client;
+        }
     }
 
     /**
@@ -139,7 +161,7 @@ class Kopokopo
             $this->token = $token;
         }
 
-        $this->headers['Authorization']='Bearer '.$this->token;
+        $this->headers['Authorization'] = 'Bearer ' . $this->token;
 
         return $this;
     }
@@ -252,8 +274,7 @@ class Kopokopo
     public
     function subscribeRegisteredWebhooks(): array
     {
-        $webhooks = config('kopokopo.webhooks');
-        foreach ($webhooks as $event_type => $url) {
+        foreach ($this->webhooks as $event_type => $url) {
             $this->subscribeWebhook($event_type, $url, $this->scope, $this->till_number);
         }
         return self::success("Webhooks Registered");
@@ -361,7 +382,7 @@ class Kopokopo
             ],
             'metadata' => $metadata,
             '_links' => [
-                'callback_url' => config('kopokopo.stk_payment_received_webhook'),
+                'callback_url' => $this->stk_webhook,
             ],
         ];
 
